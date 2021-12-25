@@ -12,7 +12,8 @@ picGo下载地址：https://github.com/Molunerfinn/PicGo/releases/download/v2.3.
 
 4.安装picGo的插件
 
-![image-20211215172811791](E:\个人技术总结\assets\image-20211215172811791.png)
+![image-20211215172811791](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20211215172811791.png)
+
 
 5.配置typora
 
