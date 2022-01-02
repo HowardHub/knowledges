@@ -1,0 +1,325 @@
+一.库的语句
+1.建库
+	CREATE DATABASE 数据库名;
+2.删除数据库
+	DROP DATABASE 数据库名;
+
+
+二.表的语句
+1.建表语句	
+	CREATE TABLE 表名(列名1 数据类型1, 列名2 数据类型2,...) CHARSET='utf8';
+	
+2.插入数据
+	INSERT INTO 表名 VALUES(数据1, 数据2,...);
+	# 指定列名
+	INSERT INTO 表名 (列名1, 列名2,...) VALUES(数据1, 数据2,...);
+	# 一次行插入多条数据
+	INSERT INTO 表名 (列名1, 列名2,...) VALUES
+			(数据1, 数据2,...),(数据1, 数据2,...),...;
+3.复制表
+	CREATE TABLE tb1_temp1 select * from tb1;
+	CREATE TABLE tb1_temp2 select * from tb1;
+	CREATE TABLE tb1_temp3 select * from tb1;
+4.查看字段
+	DESC 表名
+
+5.修改表结构ALTER TABLE
+	# 修改列定义：数据类型的修改必须具有兼容性。
+	ALTER TABLE 表名 MODIFY 列名 数据类型;
+	alter table uesr modify name varchar(100);
+	
+	# 添加列：
+	ALTER TABLE 表名 ADD 列名 数据类型;
+	alter table user add birth date;
+	alter table user add birth date after id;#把birth放在id后面
+	
+	# 修改列名和定义
+	ALTER TABLE 表名 CHANGE 修改前的列名 修改后的列名 修改后的数据类型;
+	alter table user change birth birthday datetime;
+	# 删除列
+	ALTER TABLE 表名 DROP 列名;
+	alter table user drop birthday;
+6.创建主键(非空，唯一)
+	CREATE TABLE 表名(id INT PRIMARY KEY, name VARCHAR(100));
+    #设置唯一键（可空，但唯一）
+    CREATE TABLE 表名(age INT UNIQUE, name VARCHAR(100));
+	#设置自增初始值
+	CREATE TABLE user(id int(100) auto_increment, name varchar(100)) auto_increment = 100;
+	
+
+7.设置默认值
+	CREATE TABLE 表名 (列名 数据类型 DEFAULT 默认值,...);
+	或 ALTER TABLE user MODIFY name varchar(100) DEFAULT '未输入姓名';
+8.创建索引
+	CREATE INDEX 索引名 ON 表名(列名);
+	create index age_ind on user(age);
+	#显示索引
+	SHOW INDEX FROM 表名;
+	#删除索引
+	DROP INDEX 索引名 ON 表名;
+	
+三.复制删除表和记录
+1.将表的列结构和记录整个复制
+	#这种语法不能复制AUTO_INCREMENT等属性。还可能改变列的属性，如varchar(100)变char
+	CREATE TABLE 新表名 SELECT * FROM 原表名;
+2.仅复制表的结构
+	#这种语法会复制AUTO_INCREMENT等属性。
+	CREATE TABLE 新表名 LIKE 原表名;
+3.复制其他表的记录
+	INSERT INTO 表名 SELECT * FROM 原表名;
+	# 选择某一列进行复制
+	INSERT INTO 表名(列名) SELECT 列名 FROM 原表名;
+4.删除表
+	#一般来说，在目标表不存在的情况下执行DROP命令会发生错误.
+	DROP TABLE 表名;
+	#当目标表存在时将其删除
+	DROP TABLE IF EXISTS 表名;
+5.删除表的所有记录，但保存结构
+	DELETE FROM 表名;
+	
+	
+四.查询
+1.使用CASE WHEN
+	#根据条件改变输入值，如大于80分，输入优
+	CASE 
+		WHEN 条件1 THEN 显示的值
+		WHEN 条件2 THEN 显示的值
+		WHEN 条件3 THEN 显示的值
+		...
+	ELSE 不满足所有条件时的值
+	END
+2.COUNT
+	#包含NULL
+	COUNT(*)
+	#id非空，不包含NULL
+	COUNT(id)
+	
+3.语句的执行顺序
+	#原语句
+	SELECT ～ FROM ～ WHERE ～ GROUP BY ～ HAVING ～ ORDER BY ～
+	#实际的顺序
+	FROM ～→ WHERE ～→ GROUP BY ～→ HAVING ～→ SELECT ～→ ORDER BY ～
+	
+	
+	
+五.编辑数据
+1.修改列的所有记录
+	UPDATE 表名 SET 列名 = 设置的值;
+	在启动My SQL监视器的时候可以加上--safe-updates选项。
+	在使用此选项的情况下，如果列上没有WHERE条件就无法执行UPDATE或DELETE。
+	
+2.只修改符合条件的记录
+	UPDATE 表名 SET 列名 = 设置的值 WHERE条件;
+	# 给倒数前三备注加油
+	update user set remark='加油!' order by score limit 3;
+
+3.仅复制指定记录
+	# 创建新表并按条件提取记录
+	CREATE TABLE ta_A101 SELECT * FROM tb WHERE empid LIKE 'A101';
+	# 往存在的表中复制记录
+	INSERT INTO 已存在的表 SELECT * FROM tb WHERE empid LIKE 'A101';
+	# 排序后复制(第2~5名记录)
+	CREATE TABLE tb_2to5 FROM tb ORDER BY sales DESC LIMIT 4 OFFSET 1;
+4.删除符合条件的记录
+	#删除所有记录
+	DELETE FROM 表名;
+	# 删除指定的记录
+	DELETE FROM 表名 WHERE条件;
+	
+六.多表查询
+	#像这样把不同的表中相匹配的记录提取出来的连接方式称为内连接。
+	#如果要明确指出某一处理是内连接，可以将JOIN部分写成INNER JOIN。	
+	#外连接是其中一个表的记录与其他表的记录在不匹配的
+	#情况下也会提取出来的连接方式。LEFT JOIN 和 RIGHT JOIN
+
+七.视图
+1.创建视图
+	# 不要忘了AS
+	CREATE VIEW 视图名 AS SELECT 列名 FROM 表名 WHERE 条件;
+	# 为了防止输入与WHERE条件不匹配的记录，我们可以在使用
+	# CREATE VIEW创建视图时，加上WITH CHECKOPTION。
+	CREATE VIEW 视图名 AS SELECT 列名 FROM 表名 WHERE 条件 WITH CHECK OPTION;
+	
+2.替换视图
+	# 存在时删除后新建，不存在时新建
+	CREATE OR REPLACE 视图名 AS SELECT 列名 FROM 表名 WHERE 条件;
+	
+3.修改视图结构
+	ALTER VIEW 视图名 AS SELECT 列名 FROM 表名;
+
+4.删除视图
+	DROP VIEW 视图名；
+
+八.存储过程：将多个SQL语句组合成一个只需要使用命令"CALL xx"就能执行的集合，
+   该集合就成为存储过程(stored procedure)。即将一系列步骤归纳并存储起来的集合。
+   
+1.创建存储过程
+	
+	CREATE PROCEDURE 存储过程名()
+	BEGIN
+		SQL语句1;
+		SQL语句2;
+		...
+		SQL语句n;
+	END
+	#实例:在创建存储过程时，需要事先将分隔符从“;”修改为其他符号，一般使用“//”。
+	dlimiter //
+	CREATE PROCEDURE pr1()
+	BEGIN
+	SELECT * FROM tb;
+	SELECT * FROM tb1;
+	END
+	//
+	delimiter;
+	
+2.存储过程中参数的编写
+	CREATE PROCEDURE 存储过程名(参数名 数据类型)
+	#实例
+	delimiter //
+	CREATE PROCEDURE pr2(d INT)
+	BEGIN
+	SELECT * FROM tb WHERE sales > d;
+	END
+	//
+	delimiter ;
+	
+	CALL pr2(200);
+	
+3.显示存储过程的内容
+	SHOW CREATE PROCEDURE 存储过程名;
+	show create procedure pr1;
+	
+4.删除存储过程
+	DROP PROCEDURE 存储过程名;
+
+5.存储函数：带有返回值的存储过程
+	CREATE FUNCTION 存储函数名(参数 数据类型) RETURNS 返回值的数据类型
+	BEGIN 
+		SQL语句1,...
+		RETURN 返回值 . 表达式
+	END
+	# 计算标准标准体重 = 身高 * 身高 * 22 / 10000
+	delimiter //
+	create function fu1(height INT) returns double
+	begin
+	return height * height * 22 /10000;
+	end
+	//
+	delimiter;
+	# 执行
+	select fu1(174);
+6.启动允许MYSQL执行存储函数的配置
+	SET GLOBAL log_bin_trust_function_creators = 1;
+	SHOW VARIABLES LIKE 'log_bin_trust_function_creators';
+
+7.存储函数中的自定义变量	
+	delimiter //
+	create function fu2() returns doulbe
+	begin 
+	declare r double;
+	select avg(sales) into r from tb;
+	return r;
+	end
+	//
+	delimiter;
+	#执行fu2
+	select fu2();
+
+8.删除存储函数
+	DROP FUNCTION 存储函数名
+	drop function fu2;
+	
+9.显示存储函数内容
+	SHOW CREATE FUNCTION 存储函数名;
+
+九.触发器
+	触发器（trigger）是一种对表执行某操作后会触发执行其他命令的机制。
+1.创建触发器
+	CREATE TRIGGER 触发器名 BEFORE(或者AFTER) DELETE(或INSERT,UPDATE)命令
+	ON 表名 FRO EACH ROW
+	BEGIN 
+		使用更新前(OLD.列名)或更新后(NEW.列名)的处理
+	END
+	# 实例
+	dlimiter //
+	create trigger tr1 before delete on tb1 for each row
+	begin 
+	insert into tab1_from values(old.empid, old.name, old.age);
+	end
+	//
+	delimiter;
+
+2.查看触发器
+	SHOW TRIGGERS;
+
+3.删除触发器
+	DELETE TRIGGER 触发器名;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+	
