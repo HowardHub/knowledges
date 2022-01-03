@@ -37,11 +37,17 @@ vi /etc/redis.conf
 >端口号
 >port 6379
 >设置密码
->requirepass FA86D6708231EACC2EC22F0_20190624
+>requirepass 6623
 >关闭保护
 >protected-mode no
 >ESC  :wq  保存
 >systemctl restart redis.service 
+>
+>登录
+>
+>先执行：redis-cli 
+>
+>再执行：auth 6623
 
 #### 五.设置开机启动
 
