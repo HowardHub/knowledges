@@ -63,7 +63,9 @@ erl -version
 3.安装RabbitMQ
 a.执行如下命令，进入用户主目录。
 
-  cd
+```bash
+cd ~
+```
 
 b.执行如下命令，下载RabbitMQ安装包。
 打开Rabbit官网。
@@ -71,10 +73,14 @@ b.执行如下命令，下载RabbitMQ安装包。
 找到并单击“Download+Installation”。
 根据云服务器的操作系统选择下载地址（选中后右键，然后复制地址加上,到主机上用wget下载）。
 
+```bash
+wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.9.11/rabbitmq-server-3.9.11-1.el8.noarch.rpm
+```
+
 c.执行以下命令安装RabbitMQ安装包。
 
 ```bash
-yum install rabbitmq-server-3.8.12-1.el7.noarch.rpm # 看你下载得是哪个版本。
+yum install rabbitmq-server-3.9.11-1.el8.noarch.rpm # 看你下载得是哪个版本。
 ```
 
 d.安装完毕，启动RabbMQ
