@@ -32,22 +32,34 @@ whereis  redis.config
 vi /etc/redis.conf  
 ```
 
->允许远程访问(需要注释掉所有的bind!!!)
->#bind 127.0.0.1
->端口号
->port 6379
->设置密码
->requirepass 6623
->关闭保护
->protected-mode no
->ESC  :wq  保存
->systemctl restart redis.service 
->
->登录
->
->先执行：redis-cli 
->
->再执行：auth 6623
+3.修改配置
+
+```bash
+#允许远程访问(需要注释掉所有的bind!!!)
+#bind 127.0.0.1
+
+#端口号
+port 6379
+
+#设置密码
+requirepass 6623
+
+#关闭保护
+protected-mode no
+```
+
+4.重启服务
+
+```bash
+systemctl restart redis.service 
+```
+
+5.登录验证
+
+```bash
+先执行：redis-cli 
+再执行：auth 6623
+```
 
 #### 五.设置开机启动
 
