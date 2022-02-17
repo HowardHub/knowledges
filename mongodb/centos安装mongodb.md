@@ -26,6 +26,8 @@ yum -y install mongodb-org
 whereis mongod
 ```
 
+
+
 #### 3.启动MongoDB 
 
 启动mongodb ：
@@ -130,7 +132,11 @@ vim /etc/mongod.conf
 net:
   port: 27017
   bindIp: 0.0.0.0
-  
+```
+
+启用身份验证配置
+
+```bash
 security:
   authorization: enabled
 ```
@@ -141,10 +147,4 @@ security:
 ```bash
 sudo service mongod restart
 ```
-
-#### 6.navicate登录
-
-![image-20220118232420915](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220118232420915.png)
-
-
 

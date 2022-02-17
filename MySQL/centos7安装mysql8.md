@@ -10,7 +10,6 @@ sudo yum localinstall https://dev.mysql.com/get/mysql80-community-release-el7-1.
 与其他使用yum的软件包一样安装MySQL：
 
 ```bash
-yum module disable mysql
 yum install mysql-community-server
 ```
 
