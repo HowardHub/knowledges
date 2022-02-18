@@ -76,7 +76,7 @@ service mysqld start # 添加一行
 2.建立新用户
 
 ```bash
-mysql-> create user 'hzp'@'%' identified by '6623.';
+mysql-> create user 'hzp'@'%' identified by '6623.*aA';
 ```
 
 3.给新用户分权限
