@@ -134,7 +134,7 @@ rabbitmqctl set_permissions -p / root '.*' '.*' '.*'
 rabbitmq-server -detached
 ```
 
-使用浏览器访问 “http://弹性公网IP:15672”，显示如下页面，说明RabbitMQ安装成功。
+使用浏览器访问 http://弹性公网IP:15672 ，显示如下页面，说明RabbitMQ安装成功。
 
 ### 三.其他命令
 
