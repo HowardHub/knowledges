@@ -14,8 +14,8 @@ yum install redis #出现选择就一直 y
 
 ```bash
 redis-cli
-set  'test'  'hello'
-get  'test'
+set  test  hello
+get  test
 ```
 
 #### 四、修改配置
