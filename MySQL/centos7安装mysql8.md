@@ -71,14 +71,15 @@ service mysqld start # 添加一行
 ```
 
 ### 五.用户权限相关
+1.登录Mysql
 
-1.建立新用户
+2.建立新用户
 
 ```bash
 mysql-> create user 'hzp'@'%' identified by '6623.';
 ```
 
-2.给新用户分权限
+3.给新用户分权限
 
 ```bash
 mysql> grant all privileges on *.* to 'hzp'@'%' with grant option;
