@@ -11,7 +11,7 @@ sudo yum localinstall https://dev.mysql.com/get/mysql80-community-release-el7-1.
 
 ```bash
 yum module disable mysql
-yum install mysql-community-server
+yum install mysql-community-server --nogpgcheck  #禁用gpg检测，防止报错
 ```
 
 ### 二.启动MySQL
