@@ -605,7 +605,7 @@ allkeys-lru和allkeys-random策略对于当你想要单一的实例实现缓存�
 
 
 
-#### 7.Redis主从复制的原理
+#### 7.Redis主从复制的原理（★★）
 
 ##### 主从复制机制
 
@@ -641,47 +641,245 @@ salve可以接受其他slave的连接。除了多个slave可以连接到同一�
 
 
 
+#### 8.缓存雪崩、缓存穿透、缓存击穿在实际中如何处理（★★★★★）
+
+##### 缓存穿透
+
+指擦汗寻一个一定不存在的数据，由于缓存时不命中时被动写的，并且出于容错考虑，如果从存储层查不到则不写入缓存，这将导致这个不存在的数据每次请求都要到存储层去查询，失去了缓存的意义。在流量大时，可能导致DB挂掉。要是有人利用不存在的key频繁攻击我们的应用，这就是漏洞。
+
+##### 解决方案
+
+使用布隆过滤器，将所有可能存在的数据哈希到一个足够大的bitmap中，一个一定不存在的数据会被这个bitmap拦截掉，从而避免了对底层存储系统的查询压力。另外还有一个更粗暴的方法：如果一个查询返回的数据为空，仍然把这个空结果进行缓存，但它的过期时间会很短，最长不超过5分钟。
 
 
 
+##### 缓存击穿
+
+对于一些设置了过期时间的key，如果这些key可能会在某些时间点被超高并发地访问，是一种非常“热点”地数据。这个时候，需要考虑一个问题：缓存被“击穿”，这个和缓存雪崩地区别在于这里针对某一key缓存，而雪崩针对很多key。缓存在某个时间点过期地时候，恰好在这个时间点对这个key有大量地并发请求过来，这些请求发现缓存过期一般都会从后端DB加载数据并回设到缓存，这个时候大并发的请求可能会瞬间把DB压垮。
+
+##### 解决方案
+
+缓存失效时的雪崩效应对底层系统的冲击非常可怕。大多数系统设计者考虑用加锁或者队列的方式保证缓存的单线程写，从而避免失效时大量的并发请求落到DB上。我们可以将缓存失效时间分散开，比如在原有失效时间的基础上增加一个随机值（1-5分钟随机），这样每一个缓存的过期时间的重复率就会降低，很难引发集体失效的事件。
 
 
 
+##### 缓存雪崩
+
+指我们设置缓存采用了相同的过期时间，导致缓存在某一个时刻同时失效，请求全部转发到DB，导致DB瞬间压力过大雪崩。
+
+##### 解决方案
+
+1.使用互斥锁(mutex key)
+
+即缓存失效的时候（判断拿去来的值为空），不是立即去load db，而是先使用缓存工具的某些带成功操作返回值的操作（比如redis的setnx）去set一个mutex key，当操作返回成功时，再进行load db操作并回设缓存；否则，就重试整个get缓存的方法。setnx是set if not exists的缩写，也就是只有不存在的时候才设置，可以利用它来实现锁的效果。
+
+2.“提前”使用互斥锁
+
+在value内部设置1个超时值(timeout 1)，timeout 1比实际的memcache timeout(timeout2)小。当从cache读取到timeout1发现它已经过期时，马上延长timeout1并重新设置到cache，然后再从数据库加载数据并设置到cache中。
+
+3.“永远不过期”，包含两层意思
+
+(1)：从redis上看，确实没有设置过期时间，这就保证了，不会出现热点key过期问题。即物理不过期
+
+(2)：从功能上看，如果不过期，那不就成了静态的嘛？所以我们把过期时间存在key对应的value里，如果发现要过期了，通过一个后台的异步线程进行缓存的构建，也就是“逻辑”过期。
+
+从实战看，这种方法性能非常好，唯一不足的就是构建缓存的时候，其余线程可能访问的时老数据，但对于一般的业务来讲是可以忍受的。
 
 
 
+##### 总结
 
+* 穿透：缓存不存在、数据库不存在、高并发、少量key
+* 击穿：缓存不存在、数据库存在、高并发、少量key
+* 雪崩：缓存不存在、数据库存在、高并发、大量key
 
+##### 终极方案：
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+即访问时发现缓存不存在，应该去redis上的另外一个集合中抢锁，只有抢到锁的请求，才能访问DB，此时复杂度为O(1),并回设缓存（复杂度也是O(1)的）；其他的请求因为抢不到锁，而进入等待，然后再去缓存中查询数据。只要DB没事，架构就是稳定的。该解决方案适用于“预热问题”，冷数据受到大量访问时。
 
 
 
 ### 三、MySQL
+
+#### 1.海量数据下，如何根据执行计划调优SQL
+
+explain最重要的3个字段：type、key、extra
+
+答：先查询执行计划，重点看type,key,extra这三个字段，根据这三个字段的具体值来判断当前的执行效果，然后来进行调整。比如，我在分析dangjian项目的某个表的查询的执行计划时，发现key没有值，然后我就加了一个索引字段，使得key有值了。
+
+
+
+
+
+
+
+
+
+#### 2.MySQL索引体系如何应对海量数据存储
+
+##### MySQL的索引底层为何使用B+树？
+
+1.索引数据和实际数据都存储在磁盘上
+
+2.当进行查询的时候，需要将磁盘中的数据读取到内存中
+
+3.分块进行数据读取（也的整数倍）
+
+4.使用什么样的数据结构存储（格式：K-V）：hash表、树（二叉树、BST、AVL、红黑树）、B+树
+
+![image-20220220141338464](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220141338464.png)
+
+
+
+
+
+innodb_page_size
+
+B-Tree的结构。键值即索引列值
+
+![image-20220220134716016](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220134716016.png)
+
+3层存满的记录数：16 x 16 x 16
+
+
+
+B+Tree的结构
+
+![image-20220220135532870](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220135532870.png)
+
+假设指针加key一共占10kb，因为每页16kb，所以3层存满的记录数：1600 x 1600 x 16 约等于 4千万条
+
+
+
+##### MySQL的索引一般是几层的B+树？
+
+答：一般情况下，3~4层的B+树足以支持千万级别的数据量存储。
+
+
+
+
+
+#### 3.海量数据下，如何设计性能优良的MySQL索引
+
+![image-20220220142033101](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220142033101.png)
+
+
+
+#### 4.MySQL的聚簇索引和非聚簇索引解析
+
+![image-20220220145053737](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220145053737.png)
+
+
+
+
+
+
+
+
+
+#### 5.MySQL索引面试必问名词：回表、索引覆盖、最左匹配
+
+
+
+![image-20220220151501493](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220151501493.png)
+
+
+
+![image-20220220151723618](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220151723618.png)
+
+如何解决回表：把要查询的所有字段都放到索引的叶子节点中，就可以防止回表
+
+
+
+#### 6.如何针对特定SQL场景，来进行索引的调优
+
+例如：city表有个city_name字段 varchar(520)，如何针对city_name建立索引？
+
+答：采用截取的方式，根据
+
+```mysql
+select count(*) as cnt left(city_name,1) as pref 
+from city 
+group by pref 
+order by cnt desc 
+limit 10;
+```
+
+中的pref从小到大（1、2、3...）来确定截取长度最适合的值，达到一个值后，pref不会发生改变。
+
+然后建立索引
+
+```mysql
+alter table city add key(city_name(7)); # 截取city_name的前7位建立索引
+```
+
+
+
+#### 7.海量数据下，必知必会的MySQL分布式集群
+
+##### 什么是MySQL的主从复制、读写分离、分库分表？读写分离和分库分表基于主从复制
+
+主从复制涉及到binlog、IO Thread、SQL Thread、reloy log 
+
+![image-20220220170040690](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220170040690.png)
+
+master写binlog是顺序的、IO Thread写relay log是顺序的，他们都是以append的方式写文件；但SQL thread写db文件是随机的，因为它要找到具体的数据（指不定哪一条）然后再写入。
+
+
+
+
+
+
+
+
+
+
+
+#### 8.海量数据下，如何保证不同事务的数据一致性
+
+原子性、隔离性和持久性保证了一致性
+
+![image-20220220202822916](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220202822916.png)
+
+
+
+
+
+
+
+#### 9.MySQL事务的ACID的底层实现机制全解析
+
+![image-20220220201240783](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220201240783.png)
+
+
+
+![image-20220220202016699](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220202016699.png)
+
+![image-20220220202633532](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220202633532.png)
+
+![image-20220220202237860](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220202237860.png)
+
+
+
+#### 10.MySQL海量数据并发访问的核心机制——MVCC
+
+
+
+
+
+#### 11.数据并发访问的MySQL幻读问题及解决方案
+
+
+
+
+
+#### 12.如何监测并调整MySQL的锁状态
+
+
+
+
+
+#### 13.如果完美回答MySQL的调优问题
 
 
 
@@ -726,6 +924,74 @@ salve可以接受其他slave的连接。除了多个slave可以连接到同一�
 
 
 ### 八、Spring
+
+##### 1.使用spring的优势?
+
+* 通过ID、AOP和伤处样板式代码来简化企业级Java开发
+* 低侵入设计，代码的污染极低
+* 独立于各种应用服务器，基于spring的应用可以实现write once，run anywhere
+* IoC容器降低了业务对象替换的复杂性，提高了组件之间的解耦
+* AOP支持允许将一些通用任务如安全、事务、日志等进行集中式处理
+* ORM和DAO提供了与第三方持久层框架的良好整合，简化了底层数据库访问
+* 高度开放，内部组件可以任意组合使用
+
+##### 2.什么是bean的自动装配，它有哪些方式？
+
+![image-20220220212438233](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220212438233.png)
+
+##### 3.ACID是靠什么来保证的？
+
+![image-20220220213220034](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220213220034.png)
+
+##### 4.BeanFactory和ApplicationContext有什么区别
+
+![image-20220220213648914](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220213648914.png)
+
+#### 5.SpringBoot自动装配的原理是什么？（★★★★）
+
+
+
+
+
+#### 6.SpringMVC工作流程是什么？
+
+```java
+org.springframework.web.servlet.DispatcherServlet
+```
+
+![image-20220220215153424](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220215153424.png)
+
+
+
+建议看DispatcherServlet的源码
+
+![image-20220220215557809](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220215557809.png)
+
+##### 7.SpringMVC的9大组件
+
+![image-20220220220727737](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220220727737.png)
+
+
+
+##### 8.Spring的核心是什么？
+
+![image-20220220220835891](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220220835891.png)
+
+
+
+#### 9.Spring的事务传播机制是什么？（★★★★）
+
+做个测试：A.a()，B.b()，其中a方法内部调用了b方法
+
+![image-20220220221650581](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220221650581.png)
+
+
+
+##### 10.Spring中的单例bean是线程安全的嘛？
+
+![image-20220220221938337](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220220221938337.png)
+
+
 
 
 
