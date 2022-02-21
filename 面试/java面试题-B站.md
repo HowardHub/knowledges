@@ -127,7 +127,11 @@ Formula接口在拥有calculate方法之外同时还定义了sqrt方法，实现
 代码如下:
 
 ```java
-Formula formula = new Formula() { @Override public double calculate(int a) { return sqrt(a * 100); } };
+Formula formula = new Formula() {
+    @Override public double calculate(int a) {
+        return sqrt(a * 100); 
+    } 
+};
 
 formula.calculate(100); // 100.0 formula.sqrt(16); // 4.0
 ```
