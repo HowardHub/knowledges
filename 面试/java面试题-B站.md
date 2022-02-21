@@ -74,6 +74,8 @@ Vector、Hashtable
 
 缺点：效率低下 
 
+
+
 **第二代线程非安全集合类**
 
 ArrayList、HashMap
@@ -100,7 +102,7 @@ CopyOnWriteArrayList ：
 
 CopyOnWriteArraySet：   注意 不是CopyOnWriteHashSet*
 
-底层大都采用Lock锁（1.8的ConcurrentHashMap不使用Lock锁），保证安全的同时，性能也很高。       
+底层大都采用Lock锁（1.8的ConcurrentHashMap不使用Lock锁），保证安全的同时，性能也很高。
 
 
 
