@@ -201,3 +201,5 @@ http://124.223.54.117:8081/
 nexus的安装教程：https://segmentfault.com/a/1190000040220525
 
 maven的setting.xml元素解释： https://www.cnblogs.com/hongmoshui/p/10762272.html
+
+配置： https://www.hangge.com/blog/cache/detail_2844.html
