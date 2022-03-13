@@ -80,6 +80,12 @@ sudo systemctl start zookeeper
 sudo systemctl start kafka
 #查看kafka的状态
 sudo systemctl status kafka
+
+#暂停kafka
+sudo systemctl stop kafka
+
+#暂停zookeeper
+sudo systemctl stop zookeeper
 ```
 
 5.创建主题 Apache 卡夫卡
@@ -116,6 +122,7 @@ Hello Kafka
 7.运行消费者，用于从 Kafka 集群读取数据并将消息显示到标准输出：
 
 ```bash
+cd /usr/local/kafka
 bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic testTopic --from-beginning
 
 Welcome to kafka
