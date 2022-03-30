@@ -1,4 +1,4 @@
-说明：这是spring配置文件的通用名词解释，来源于https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#appendix.application-properties
+说明：这是spring配置文件的通用名词解释，来源于 https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#appendix.application-properties
 
 
 
