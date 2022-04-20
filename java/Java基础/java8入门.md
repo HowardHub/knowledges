@@ -609,6 +609,19 @@ public class Main {
 }
 ```
 
+还有另一种写法，可以直接省略Collectors.toList()
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        List<String> list = List.of("Apple", "Banana", "Blackberry", "Coconut", "Avocado", "Cherry", "Apricots");
+        Map<String, List<String>> groups = list.stream()
+                .collect(Collectors.groupingBy(s -> s.substring(0, 1)));
+        System.out.println(groups);
+    }
+}
+```
+
 ##### 小结
 
 `Stream`可以输出为集合：
