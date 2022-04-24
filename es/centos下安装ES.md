@@ -4,39 +4,36 @@
 1.下载安装文件
 
 ```bash
- wget https://repo.huaweicloud.com/elasticsearch/7.6.1/elasticsearch-7.6.1-linux-x86_64.tar.gz
+wget https://repo.huaweicloud.com/elasticsearch/7.6.1/elasticsearch-7.6.1-linux-x86_64.tar.gz
 ```
 
 2.解压文件
 
 ```bash
 tar -zxvf elasticsearch-7.6.1-linux-x86_64.tar.gz
-mkdir /usr/local/es
+# 移动并改名为es
 mv elasticsearch-7.6.1 /usr/local/es/
 ```
 
-2.解压文件
-tar -zxvf elasticsearch-7.6.1-linux-x86_64.tar.gz
-mkdir /usr/local/es
-mv elasticsearch-7.6.1 /usr/local/es/
-
-3.修改配置
+3.改大jvm内存
 
 ```bash
 vi /etc/sysctl.conf
 vm.max_map_count=262144 # 改大jvm内存
 /sbin/sysctl -p # 立即生效
+```
 
-cd /usr/local/es/elasticsearch-7.6.1/
+4.修改配置
 
-vi /usr/local/es/elasticsearch-7.6.1/config/elasticsearch.yml
+```bash
+cd /usr/local/es/
+vi /usr/local/es/config/elasticsearch.yml
+
 node.name: master
 network.host: 0.0.0.0
 http.port: 9200
 cluster.initial_master_nodes: ["master"]
 ```
-
-
 
 在elasticsearch.yml文件最后加入配置如下，让head插件能连上。
 
@@ -47,7 +44,7 @@ http.cors.allow-methods: OPTIONS, HEAD, GET, POST, PUT, DELETE
 http.cors.allow-headers: "X-Requested-With, Content-Type, Content-Length, X-User"
 ```
 
-4.创建普通用户（因为ES无法用root启动）
+5.创建普通用户（因为ES无法用root启动）
 a.liunx创建新用户 
 
 ```
@@ -80,11 +77,47 @@ su hezp
 curl localhost:9200
 ```
 
-7.关闭es
+7.关闭es（用stop.sh脚本停止es更优雅）
 
 ```bash
 ps -ef | grep elastic
 kill -9 进程号
+```
+
+8.es关闭脚本
+
+在es/bin目录下建立一个stop脚本
+
+```
+vim /usr/local/es/bin/stop.sh
+```
+
+添加内容
+
+```bash
+#!/bin/bash
+es_ps=`jps|grep Elasticsearch`
+OLD_IFS="$IFS"
+IFS=" "
+arr=($es_ps)
+IFS="$OLD_IFS"
+echo '正在停止ElasticSearch进程:' ${arr[0]}...
+kill -9 ${arr[0]}
+echo '已停止'
+```
+
+再给脚本设置启动权限和es用户权限：
+
+```bash
+chmod +x stop.sh
+chown -R hezp stop.sh
+chgrp -R hezp stop.sh
+```
+
+执行
+
+```bash
+./stop.sh
 ```
 
 
