@@ -76,7 +76,37 @@ target包出现了
 
 ![image-20220418172748235](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220418172748235.png)
 
+##### Kotlin: Language version 1.1 is no longer supported; please, use version 1.3 or greater.
 
+修改build.gradle文件的kotlin版本，把1.1改为1.5，然后再build即可。
+
+```groovy
+	compileKotlin {
+		kotlinOptions {
+			jvmTarget = "1.8"
+			freeCompilerArgs = ["-Xjsr305=strict"]
+			apiVersion = "1.1"
+			languageVersion = "1.1"
+		}
+	}
+```
+
+改为
+
+```groovy
+	compileKotlin {
+		kotlinOptions {
+			jvmTarget = "1.8"
+			freeCompilerArgs = ["-Xjsr305=strict"]
+			apiVersion = "1.5"
+			languageVersion = "1.5"
+		}
+	}
+```
+
+
+
+##### 
 
 #### Spring各个模块的依赖关系
 
