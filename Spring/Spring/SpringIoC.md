@@ -199,7 +199,7 @@ Spring的IoC容器是一个提供IoC支持的轻量级容器，除了基本 的I
 
 ![image-20220423223059797](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220423223059797.png)
 
-DefaultListableBeanFactory除了间接地实现了BeanFactory接口，还实现了BeanDefinitionRegistry接口，该接口才 是在BeanFactory的实现中担当Bean注册管理的角色。基本上，BeanFactory接口只定义如何访问容 器内管理的Bean的方法，各个BeanFactory的具体实现类负责具体Bean的注册以及管理工作。 BeanDefinitionRegistry接口定义抽象了Bean的注册逻辑。
+DefaultListableBeanFactory除了间接地实现了BeanFactory接口，还实现了BeanDefinitionRegistry接口，该接口才是在BeanFactory的实现中担当Bean注册管理的角色。基本上，BeanFactory接口只定义如何访问容 器内管理的Bean的方法，各个BeanFactory的具体实现类负责具体Bean的注册以及管理工作。 BeanDefinitionRegistry接口定义抽象了Bean的注册逻辑。
 
 每一个受管的对象，在容器中都会有一个BeanDefinition的实例（instance）与之相对应，该 BeanDefinition的实例负责保存对象的所有必要信息，包括其对应的对象的class类型、是否是抽象 类、构造方法参数以及其他属性等。
 
@@ -534,7 +534,7 @@ scope用来声明容器中的对象所应该处的限定场景或者说该对象
 
 #### 工厂方法与FactoryBean
 
-有时，我们需要依赖第三方库，需要实例化并使用第三方库中的相 关类，这时，接口与实现类的耦合性需要其他方式来避免。
+有时，我们需要依赖第三方库，需要实例化并使用第三方库中的相关类，这时，接口与实现类的耦合性需要其他方式来避免。
 
 通常的做法是通过使用工厂方法（Factory Method）模式，提供一个工厂类来实例化具体的接口 实现类，这样，主体对象只需要依赖工厂类，具体使用的实现类有变更的话，只是变更工厂类，而主 体对象不需要做任何变动。
 
