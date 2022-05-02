@@ -129,11 +129,11 @@ include 'spring-study'
 
 ##### 跳过测试
 
-添加 -x  test
+添加 -x testClasses -x test -x javadoc -x compileTestKotlin -x checkstyleMain
 
 这样可以加快build的速度
 
-![image-20220430160409274](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220430160409274.png)
+![image-20220501160002951](https://gitee.com/wmbyy/typora_pictures/raw/master/pictures/image-20220501160002951.png)
 
 ##### 重新构建，要确保构建成功
 
